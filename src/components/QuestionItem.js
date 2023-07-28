@@ -1,13 +1,26 @@
 import React from "react";
 
-function QuestionItem({ question }) {
-  const { id, prompt, answers, correctIndex } = question;
+function QuestionItem(props) {
+  const { id, prompt, answers, correctIndex } = props.question;
+  const options = answers || [];
 
-  const options = answers.map((answer, index) => (
-    <option key={index} value={index}>
-      {answer}
-    </option>
-  ));
+  const handleDelete = () => {
+    // Make a DELETE request to delete the question with the corresponding id
+    fetch(`http://localhost:4000/questions/${id}`, {
+      method: "DELETE",
+    })
+      .then((response) => {
+        if (response.ok) {
+          // If the delete request is successful, update the state in the parent component
+          props.onQuestionDeleted(id);
+        } else {
+          // Handle any errors or show a message if needed
+        }
+      })
+      .catch((error) => {
+        // Handle any network errors
+      });
+  };
 
   return (
     <li>
@@ -15,9 +28,13 @@ function QuestionItem({ question }) {
       <h5>Prompt: {prompt}</h5>
       <label>
         Correct Answer:
-        <select defaultValue={correctIndex}>{options}</select>
+        <select defaultValue={correctIndex}>
+          {options.map((option, index) => {
+            return <option key={index}>{option}</option>;
+          })}
+        </select>
       </label>
-      <button>Delete Question</button>
+      <button onClick={handleDelete}>Delete Question</button>
     </li>
   );
 }

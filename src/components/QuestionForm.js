@@ -1,25 +1,56 @@
 import React, { useState } from "react";
 
 function QuestionForm(props) {
-  const [formData, setFormData] = useState({
+  const initialFormData = {
     prompt: "",
     answer1: "",
     answer2: "",
     answer3: "",
     answer4: "",
     correctIndex: 0,
-  });
+  };
+
+  const [formData, setFormData] = useState(initialFormData);
 
   function handleChange(event) {
-    setFormData({
-      ...formData,
-      [event.target.name]: event.target.value,
-    });
+    const { name, value } = event.target;
+    setFormData((prevState) => ({
+      ...prevState,
+      [name]: name === "correctIndex" ? parseInt(value) : value,
+    }));
   }
 
   function handleSubmit(event) {
     event.preventDefault();
-    console.log(formData);
+
+    // Make a POST request to create the new question
+    fetch("http://localhost:4000/questions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        prompt: formData.prompt,
+        answers: [
+          formData.answer1,
+          formData.answer2,
+          formData.answer3,
+          formData.answer4,
+        ],
+        correctIndex: parseInt(formData.correctIndex),
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        // Update the state in the parent component to add the new question
+        props.onQuestionAdded(data);
+
+        // Reset the form fields to their initial state
+        setFormData(initialFormData);
+      })
+      .catch((error) => {
+        // Handle any errors or show a message if needed
+      });
   }
 
   return (
